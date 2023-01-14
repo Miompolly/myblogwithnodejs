@@ -1,0 +1,106 @@
+const express=require('express');
+const app=express();
+const morgan=require('morgan');
+const mongoose=require('mongoose');
+const Blog=require('./models/blog')
+
+app.set('view engine','ejs');
+
+const uri="mongodb+srv://joel:yawhey123@nodetuts.uhp9zzf.mongodb.net/nodetuts?retryWrites=true&w=majority"
+
+async function connect(){
+    try{
+        await mongoose.connect(uri);
+        app.listen(3000);
+    }catch(error){
+        console.error(error);
+    }
+}
+mongoose.set('strictQuery', false)
+connect();
+// app.listen(3000,()=>{
+//     console.log("server started on port 3000");
+// })
+
+
+
+
+
+////middleware
+app.use(morgan('dev'));
+app.use(express.static('public'));
+
+app.get('/add-blog',(req,res)=>{
+    const blog=new Blog({
+        title:'new blog 2',
+        snippet:'about my new blog',
+        body:'more about my new blog'
+    });
+    blog.save()
+    .then((result)=>{
+        res.send(result);
+    })
+    .catch((err)=>{
+        console.log(err);
+    });
+});
+
+
+
+////get alll blogs
+
+app.get('/all-blogs',(req,res)=>{
+    Blog.find()
+    .then((result)=>{
+        res.send(result);
+    })
+    .catch((err)=>{
+        console.log(err);
+    })
+})
+
+//single blog
+
+app.get('/singleBlog',(req,res)=>{
+    Blog.findById("63c260e8abe765e4162e636a")
+    .then((result)=>{
+ res.send(result);
+    })
+    .catch((err)=>{
+        console.log(err);
+    })
+})
+
+
+app.get('/',(req,res)=>{
+
+    const blogs=[
+        {title:'Joel finds eggs',snippet:'Eggs from KIGALI Market'},
+        {title:'Bwiza finds DJ',snippet:'Element from Country Music'},
+        {title:'Divin finds Guitar',snippet:'Guitar Costs $100'},
+     ]
+    res.render('index',{title:'Home',blogs});
+})
+
+
+
+app.get('/blogs/create',(req,res)=>{
+
+
+    res.render('create',{title:'Create new Blog'});
+});
+app.get('/about',(req,res)=>{
+   
+    res.render('about',{title:'About'});
+});
+
+
+
+app.use((req,res)=>{
+ 
+
+    res.status(404).render('404',{title:'404'});
+
+});
+
+
